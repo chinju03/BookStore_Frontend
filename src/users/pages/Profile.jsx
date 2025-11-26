@@ -1,13 +1,107 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../../common/components/Header'
 import Footer from '../../common/components/Footer'
 import { MdOutlineVerified } from 'react-icons/md'
 import { FaRegEdit } from 'react-icons/fa'
+import { toast } from 'react-toastify'
+import { addBookAPI } from '../../services/allAPI'
+
 
 function Profile() {
   const [sellBookStatus, setSellBookStatus] = useState(true)
   const [bookStatus, setBookStatus] = useState(false)
   const [historyStatus, setHistoryStatus] = useState(false)
+  const [preview, setPreview] = useState("")
+  const [allUploadImages, setAllUpdateImages] = useState([])
+  const [token, setToken] = useState("")
+  const [username, setUsername] = useState("")
+  const [bookDetailes, setBookDetailes] = useState({
+    title: "",
+    author: "",
+    noOfPages: "",
+    imageUrl: "",
+    price: "",
+    dPrice: "",
+    abstract: "",
+    publisher: "",
+    language: "",
+    isbn: "",
+    category: "",
+    uploadImages: []
+  })
+  console.log(bookDetailes);
+
+  const handleFile = (e) => {
+    console.log(e.target.files[0]);
+    const fileArray = bookDetailes.uploadImages
+    fileArray.push(e.target.files[0])
+    setBookDetailes({ ...bookDetailes, uploadImages: fileArray })
+    //convert file to url
+    const url = URL.createObjectURL(e.target.files[0])
+    setPreview(url)
+    let images = allUploadImages
+    images.push(url)
+    setAllUpdateImages(images)
+  }
+
+  // console.log(allUploadImages);
+
+  const handleAddBook = async () => {
+    const { title, author, noOfPages, imageUrl, price, dPrice, abstract, publisher, language, isbn, category, uploadImages } = bookDetailes
+    if (!title || !author || !noOfPages || !imageUrl || !price || !dPrice || !abstract || !publisher || !language || !isbn || !category || uploadImages.length == 0) {
+      toast.info("fill all the detailes")
+    }
+    else {
+      //reqHeader
+      const reqHeader = {
+        "Authorization": `Bearer ${token}`
+      }
+      //reqBody- formData() append-reqBody.append(key,value) 
+      //reqBody.append("title", title)
+      const reqBody = new FormData()
+      for (let key in bookDetailes) {
+        if (key != "uploadImages") {
+          reqBody.append(key, bookDetailes[key])
+        }
+        else {
+          bookDetailes.uploadImages.forEach(img => {
+            reqBody.append("uploadImages", img)
+          })
+        }
+      }
+      try {
+        const result = await addBookAPI(reqBody, reqHeader)
+        console.log(result);
+        if(result.status == 200){
+          toast.success("book added successfully")
+        }
+        else if(result.status == 401){
+          toast.warning(result.response.data)
+        }
+        else{
+          toast.error("error in adding book")
+        }
+      } catch (error) {
+        toast.error("something went wrong")
+      }
+    }
+  }
+
+  // const handleReset = ()=>{
+
+  // }
+
+  useEffect(() => {
+    if (sessionStorage.getItem("token")) {
+      setToken(sessionStorage.getItem("token"))
+    }
+
+    if(sessionStorage.getItem("existingUser")){
+      const name = JSON.parse(sessionStorage.getItem("existingUser"))
+      setUsername(name.username)
+    }
+  }, [])
+
   return (
     <>
       <Header />
@@ -17,7 +111,7 @@ function Profile() {
       </div>
       <div className='md:flex justify-between px-20 mt-5'>
         <div className='flex items-center'>
-          <h1 className='font-bold md:text-3xl text-2xl'>Username</h1>
+          <h1 className='font-bold md:text-3xl text-2xl'>{username}</h1>
           <MdOutlineVerified className='text-blue-500 ms-3 text-xl' />
         </div>
         <div>
@@ -41,50 +135,68 @@ function Profile() {
           <div className='md:grid grid-cols-2 gap-8'>
             <div className='md:my-10 mt-5 px-2 '>
               <div className='mb-3'>
-                <input type="text" placeholder='Title' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2 rounded' />
+                <input type="text" value={bookDetailes.title} onChange={(e) => setBookDetailes({ ...bookDetailes, title: e.target.value })} placeholder='Title' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2 rounded' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <input type="text" value={bookDetailes.author} onChange={(e) => setBookDetailes({ ...bookDetailes, author: e.target.value })} placeholder='Author' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <input type="text" value={bookDetailes.noOfPages} onChange={(e) => setBookDetailes({ ...bookDetailes, noOfPages: e.target.value })} placeholder='No:OF Pages' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <input type="text" value={bookDetailes.price} onChange={(e) => setBookDetailes({ ...bookDetailes, price: e.target.value })} placeholder='Price' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <input type="text" value={bookDetailes.dPrice} onChange={(e) => setBookDetailes({ ...bookDetailes, dPrice: e.target.value })} placeholder='DiscountPrice' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <input type="text" value={bookDetailes.imageUrl} onChange={(e) => setBookDetailes({ ...bookDetailes, imageUrl: e.target.value })} placeholder='ImageUrl' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
+
               <div className='mb-3'>
-                <textarea placeholder='Publisher' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
+                <textarea value={bookDetailes.abstract} onChange={(e) => setBookDetailes({ ...bookDetailes, abstract: e.target.value })} placeholder='Abstract' className='w-full placeholder-gray-400 bg-white text-black px-3 py-2' />
               </div>
             </div>
             <div className='md:my-10 mt-5 px-2 '>
               <div className='mb-3'>
-                <input type="text" placeholder='Publisher' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
+                <input type="text" value={bookDetailes.publisher} onChange={(e) => setBookDetailes({ ...bookDetailes, publisher: e.target.value })} placeholder='Publisher' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Language' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
+                <input type="text" value={bookDetailes.language} onChange={(e) => setBookDetailes({ ...bookDetailes, language: e.target.value })} placeholder='Language' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='ISBN' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
+                <input type="text" value={bookDetailes.isbn} onChange={(e) => setBookDetailes({ ...bookDetailes, isbn: e.target.value })} placeholder='ISBN' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
               </div>
               <div className='mb-3'>
-                <input type="text" placeholder='Category' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
+                <input type="text" value={bookDetailes.category} onChange={(e) => setBookDetailes({ ...bookDetailes, category: e.target.value })} placeholder='Category' className='w-full placeholder-gray-400 p-2 bg-white text-black rounded' />
               </div>
               <div className='flex justify-center items-center mt-10 flex-col'>
-                <label htmlFor="uploadbookimg">
-                  <input type="file" style={{ display: "none" }} alt='noimage' />
-                  <img src="https://static.vecteezy.com/system/resources/previews/035/868/900/non_2x/illustration-of-upload-vector.jpg" alt="" style={{ width: '200px', height: '200px' }} />
-                </label>
+                {preview ?
+                  <img src={preview} alt="" style={{ width: '200px', height: '200px' }} />
+                  :
+                  <label htmlFor="uploadbookimg">
+                    <input type="file" onChange={(e) => { handleFile(e) }} style={{ display: "none" }} id='uploadbookimg' alt='noimage' />
+                    <img src="https://static.vecteezy.com/system/resources/previews/035/868/900/non_2x/illustration-of-upload-vector.jpg" alt="" style={{ width: '300px', height: '300px' }} />
+                  </label>}
+
+                {preview &&
+                  <div className='mt-10 flex items-center gap-5'>
+                    {
+                      allUploadImages.map((item) => (
+                        <img src={item} alt="" style={{ width: '50px', height: '50px' }} />
+                      ))
+                    }
+                    {allUploadImages.length < 3 &&
+                      <label htmlFor="uploadbookimg" className='ms-4'>
+                        <input type="file" onChange={(e) => { handleFile(e) }} style={{ display: "none" }} id='uploadbookimg' alt='noimage' />
+                        <img src="https://static.vecteezy.com/system/resources/previews/035/868/900/non_2x/illustration-of-upload-vector.jpg" alt="" style={{ width: '50px', height: '50px', borderRadius: '50%', }} />
+                      </label>}
+                  </div>}
               </div>
 
               <div className=' flex md:justify-end justify-center mt-5'>
                 <button className='bg-amber-600 text-white rounded p-4 me-3 hover:border-amber-600 hover:text-amber-600 hover:bg-white'>Reset</button>
-                <button className='bg-green-600 text-white rounded p-4  hover:border-green-600 hover:text-green-600 hover:bg-white ms-3'>Submit</button>
+                <button type='button' onClick={handleAddBook} className='bg-green-600 text-white rounded p-4  hover:border-green-600 hover:text-green-600 hover:bg-white ms-3'>Submit</button>
               </div>
             </div>
           </div>
@@ -132,11 +244,11 @@ function Profile() {
                 <h2>Author Nmae</h2>
                 <h3 className='text-blue-800'>₹ 699</h3>
                 <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse, laboriosam! Consectetur dolore est reprehenderit illum nihil error numquam! Explicabo, officia laborum debitis quia dolore quod in perspiciatis soluta officiis eos!</p>
-                
+
               </div>
               <div className='px-4 mt-4 md:mt-4'>
                 <img src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" className='w-full' style={{ height: '240px' }} />
-                
+
               </div>
             </div>
           </div>

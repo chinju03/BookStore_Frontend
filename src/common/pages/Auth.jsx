@@ -53,6 +53,8 @@ function Auth({ register }) {
       const result =await loginAPI(userDetails)
       console.log(result);
       if(result.status == 200){
+        sessionStorage.setItem("existingUser",JSON.stringify(result.data.existingUser))
+        sessionStorage.setItem("token", result.data.token)
         toast.success('login successfull')
         setUserDetails({
           email: "",

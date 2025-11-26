@@ -1,10 +1,22 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { HiMiniMagnifyingGlass, HiOutlineMagnifyingGlass } from 'react-icons/hi2';
 import { Link } from 'react-router-dom';
+import { getHomeBookAPI } from '../../services/allAPI';
 
 function LandingPage() {
+  const [homeBook, setHomeBook] = useState([])
+
+  const getHomeBooks = async() =>{
+    const result = await getHomeBookAPI()
+    console.log(result);
+    setHomeBook(result.data)
+  }
+
+  useEffect(()=>{
+    getHomeBooks()
+  },[])
   return (
     <>
       <Header />
@@ -22,20 +34,26 @@ function LandingPage() {
 
       {/* new arrivals */}
       <section className='md:px-40 p-5 flex flex-col justify-center items-center'>
-        <h1>NEW ARRIVALS</h1>
+        <h1 className='text-2xl font-bold'>NEW ARRIVALS</h1>
         <h1>Explore our latest collection</h1>
+
+        {homeBook.length>0 ? 
         <div className='md:grid grid-cols-4 w-full mt-5 '>
-          <div className='p-3'>
+          {homeBook.map((item)=>(
+            <div className='p-3'>
             <div className='shadow p-3 rounded'>
-              <img height={"300px"} width={"100%"} src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" />
+              <img height={"300px"} width={"100%"} src={item.imageUrl} alt="" />
               <div className='text-center mt-3'>
-                <p className='font-bold text-2xl'>Book Name</p>
-                <p className='font-bold text-xl'>Author</p>
-                <p className='font-bold'>₹345</p>
+                <p className='font-bold text-l'>{item.title}</p>
+                <p className='font-semibold text-md'>{item.author}</p>
+                <p className='font-bold'>{item.price}</p>
               </div>
             </div>
           </div>
+          ))}
         </div>
+        :
+        <p>loading.....</p>}
         <div className='text-center my-5'>
           <Link to={'all-books'}> <button className='px-3 py-2 bg-blue-900 text-white hover:border hover:border-blue-900 hover:text-blue-900 hover:bg-white'>Explore More</button></Link>
         </div>
