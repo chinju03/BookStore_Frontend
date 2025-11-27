@@ -6,6 +6,7 @@ import { getAllBookAPI } from '../../services/allAPI'
 
 function AllBooks() {
   const [token, setToken] = useState("")
+  const [allBooks, setAllBooks] = useState([])
 
 
   const getAllBooks = async (userToken) => {
@@ -16,6 +17,7 @@ function AllBooks() {
     try {
       const result = await getAllBookAPI(reqHeader)
       console.log(result);
+      setAllBooks(result.data)
     } catch (error) {
       console.log(error);
 
@@ -63,24 +65,18 @@ function AllBooks() {
 
         </div>
         <div className='col-span-3'>
-          {AllBooks ? 
+          {allBooks?.length > 0 ? 
           <div className='md:grid grid-cols-4 mt-5 md:mt-0'>
+           { allBooks.map((item)=>(
             <div className='shadow rounded p-3 mx-4 my-3 '>
-              <img src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" width={"100%"} height={"100px"} />
+              <img src={item.imageUrl} alt="" width={"100%"} height={"100px"} />
               <div className='flex flex-col justify-center items-center'>
-                <p>Book Title</p>
-                <p>Author</p>
+                <p>{item.title}</p>
+                <p>{item.author}</p>
                 <Link to={'/view-books/1'} className='bg-blue-800 p-2 text-white w-full text-center hover:bg-white hover:text-blue-900 hover:border hover:border-blue-600'>View Book</Link>
               </div>
             </div>
-            <div className='shadow rounded p-3 mx-4 my-3 '>
-              <img src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" width={"100%"} height={"100px"} />
-              <div className='flex flex-col justify-center items-center'>
-                <p>Book Title</p>
-                <p>Author</p>
-                <Link to={'/view-books/1'} className='bg-blue-800 p-2 text-white w-full text-center hover:bg-white hover:text-blue-900 hover:border hover:border-blue-600'>View Book</Link>
-              </div>
-            </div>
+           ))}
           </div>
           :
           <p>loading....</p>
@@ -90,10 +86,11 @@ function AllBooks() {
         </div>
       </div>
 
+     { !token &&
       <div className='my-10 flex justify-center items-center flex-col'>
         <img src="https://cdn-icons-gif.flaticon.com/17905/17905764.gif" alt="" width={"400px"} />
         <p className='font-semibold text-xl mt-5'>please <Link to={'/login'} className='text-blue-700 font-bold'>Login</Link> to explore more... </p>
-      </div>
+      </div>}
       <Footer />
     </>
   )
