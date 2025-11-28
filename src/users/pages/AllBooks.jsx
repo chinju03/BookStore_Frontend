@@ -7,6 +7,8 @@ import { getAllBookAPI } from '../../services/allAPI'
 function AllBooks() {
   const [token, setToken] = useState("")
   const [allBooks, setAllBooks] = useState([])
+  const [allcategory, setAllcategory] = useState([])
+  const [tempBooks, setTempBooks] = useState([])
 
 
   const getAllBooks = async (userToken) => {
@@ -18,23 +20,32 @@ function AllBooks() {
       const result = await getAllBookAPI(reqHeader)
       console.log(result);
       setAllBooks(result.data)
+      setTempBooks(result.data)
+      const tempCat = result.data.map(item => item.category)
+      setAllcategory([...new Set(tempCat)])
     } catch (error) {
       console.log(error);
+    }
+  }
 
-
+  const categoryFilter = (category)=>{
+    if(category == "No Filter"){
+      setAllBooks(tempBooks)
+    }else{
+      setAllBooks(tempBooks.filter(item=>item.category.toLowerCase()== category.toLowerCase()))
     }
   }
   useEffect(() => {
     if (sessionStorage.getItem("token")) {
-      const userToken =(sessionStorage.getItem("token"))
+      const userToken = (sessionStorage.getItem("token"))
       console.log(userToken);
-      
+
       setToken(userToken)
       getAllBooks(userToken)
     }
   }, [])
 
- 
+
   return (
 
     <>
@@ -47,50 +58,53 @@ function AllBooks() {
         </div>
       </div>
 
-      <div className='md:grid grid-cols-4 md:px-20 p-5 mb-10'>
-        <div className='col-span-1'>
-          <h1>Filters</h1>
-          <div className='mt-5'>
-            <input type="radio" id='Fiction' />
-            <label htmlFor="Fiction" className='ms-2'>Fiction</label>
-          </div>
-          <div className='mt-5'>
-            <input type="radio" id='Fictions' />
-            <label htmlFor="Fictions" className='ms-2'>Fiction</label>
-          </div>
-          <div className='mt-5'>
-            <input type="radio" />
-            <label htmlFor="" className='ms-2'>Fiction</label>
-          </div>
-
-        </div>
-        <div className='col-span-3'>
-          {allBooks?.length > 0 ? 
-          <div className='md:grid grid-cols-4 mt-5 md:mt-0'>
-           { allBooks.map((item)=>(
-            <div className='shadow rounded p-3 mx-4 my-3 '>
-              <img src={item.imageUrl} alt="" width={"100%"} height={"100px"} />
-              <div className='flex flex-col justify-center items-center'>
-                <p>{item.title}</p>
-                <p>{item.author}</p>
-                <Link to={'/view-books/1'} className='bg-blue-800 p-2 text-white w-full text-center hover:bg-white hover:text-blue-900 hover:border hover:border-blue-600'>View Book</Link>
-              </div>
+      
+        {token ?
+        <div className='md:grid grid-cols-4 md:px-20 p-5 mb-10'>
+          <div className='col-span-1'>
+            <h1>Filters</h1>
+           { allcategory.map((item,index)=>(
+            <div key={index} onClick={()=>categoryFilter(item)} className='mt-5'>
+              <input type="radio" id='{item}' name='filter' />
+              <label htmlFor="{item}" className='ms-2'>{item}</label>
             </div>
-           ))}
+           ))
+            }
+            <div className='mt-5' onClick={()=>categoryFilter("No Filter")}>
+              <input type="radio" name='filter' />
+              <label htmlFor="" className='ms-2'>No Filter</label>
+            </div>
+
           </div>
-          :
-          <p>loading....</p>
-          }
-          
+          <div className='col-span-3'>
+            {allBooks?.length > 0 ?
+              <div className='md:grid grid-cols-4 mt-5 md:mt-0'>
+                {allBooks.map((item, index) => (
+                  <div key={index} className='shadow rounded p-3 mx-4 my-3 '>
+                    <img src={item?.imageUrl} alt="" width={"100%"} height={"100px"} />
+                    <div className='flex flex-col justify-center items-center'>
+                      <p>{item?.title}</p>
+                      <p>{item?.author}</p>
+                      <Link to={`/view-books/${item?._id}`} className='bg-blue-800 p-2 text-white w-full text-center hover:bg-white hover:text-blue-900 hover:border hover:border-blue-600'>View Book</Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              :
+              <p>loading....</p>
+            }
 
+
+          </div>
         </div>
-      </div>
+        :
 
-     { !token &&
-      <div className='my-10 flex justify-center items-center flex-col'>
-        <img src="https://cdn-icons-gif.flaticon.com/17905/17905764.gif" alt="" width={"400px"} />
-        <p className='font-semibold text-xl mt-5'>please <Link to={'/login'} className='text-blue-700 font-bold'>Login</Link> to explore more... </p>
-      </div>}
+      
+        <div className='my-10 flex justify-center items-center flex-col'>
+          <img src="https://cdn-icons-gif.flaticon.com/17905/17905764.gif" alt="" width={"400px"} height={"100px"} />
+          <p className='font-semibold text-xl mt-5'>please <Link to={'/login'} className='text-blue-700 font-bold'>Login</Link> to explore more... </p>
+        </div>}
+      
       <Footer />
     </>
   )
