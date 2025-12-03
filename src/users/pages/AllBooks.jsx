@@ -9,7 +9,8 @@ function AllBooks() {
   const [allBooks, setAllBooks] = useState([])
   const [allcategory, setAllcategory] = useState([])
   const [tempBooks, setTempBooks] = useState([])
-
+  const [searchKey, setSearchKey] = useState("")
+  
 
   const getAllBooks = async (userToken) => {
     //reqHeader
@@ -17,8 +18,8 @@ function AllBooks() {
       "Authorization": `Bearer ${userToken}`
     }
     try {
-      const result = await getAllBookAPI(reqHeader)
-      console.log(result);
+      const result = await getAllBookAPI(searchKey,reqHeader)
+      console.log(result.data);
       setAllBooks(result.data)
       setTempBooks(result.data)
       const tempCat = result.data.map(item => item.category)
@@ -28,11 +29,11 @@ function AllBooks() {
     }
   }
 
-  const categoryFilter = (category)=>{
-    if(category == "No Filter"){
+  const categoryFilter = (category) => {
+    if (category == "No Filter") {
       setAllBooks(tempBooks)
-    }else{
-      setAllBooks(tempBooks.filter(item=>item.category.toLowerCase()== category.toLowerCase()))
+    } else {
+      setAllBooks(tempBooks.filter(item => item.category.toLowerCase() == category.toLowerCase()))
     }
   }
   useEffect(() => {
@@ -43,7 +44,7 @@ function AllBooks() {
       setToken(userToken)
       getAllBooks(userToken)
     }
-  }, [])
+  }, [searchKey])
 
 
   return (
@@ -53,24 +54,24 @@ function AllBooks() {
       <div className='flex justify-center items-center flex-col my-5'>
         <h1 className='text-3xl font-bold my-5'>Collections</h1>
         <div className='flex my-5'>
-          <input type="text" className='p-2 border border-gray-200 text-black w-full placeholder-gray-500' placeholder="search by title" />
-          <button className='bg-blue-900 text-white hover:bg-white hover:text-blue-900 hover:border hover:border-blue-800 p-2 '>Search</button>
+          <input type="text" value={searchKey}  onChange={(e)=>setSearchKey(e.target.value)} className='p-2 border border-gray-200 text-black w-full placeholder-gray-500' placeholder="search by title" />
+          <button type='button' className='bg-blue-900 text-white hover:bg-white hover:text-blue-900 hover:border hover:border-blue-800 p-2 '>Search</button>
         </div>
       </div>
 
-      
-        {token ?
+
+      {token ?
         <div className='md:grid grid-cols-4 md:px-20 p-5 mb-10'>
           <div className='col-span-1'>
             <h1>Filters</h1>
-           { allcategory.map((item,index)=>(
-            <div key={index} onClick={()=>categoryFilter(item)} className='mt-5'>
-              <input type="radio" id='{item}' name='filter' />
-              <label htmlFor="{item}" className='ms-2'>{item}</label>
-            </div>
-           ))
+            {allcategory.map((item, index) => (
+              <div key={index} onClick={() => categoryFilter(item)} className='mt-5'>
+                <input type="radio" id='{item}' name='filter' />
+                <label htmlFor="{item}" className='ms-2'>{item}</label>
+              </div>
+            ))
             }
-            <div className='mt-5' onClick={()=>categoryFilter("No Filter")}>
+            <div className='mt-5' onClick={() => categoryFilter("No Filter")}>
               <input type="radio" name='filter' />
               <label htmlFor="" className='ms-2'>No Filter</label>
             </div>
@@ -98,13 +99,11 @@ function AllBooks() {
           </div>
         </div>
         :
-
-      
         <div className='my-10 flex justify-center items-center flex-col'>
           <img src="https://cdn-icons-gif.flaticon.com/17905/17905764.gif" alt="" width={"400px"} height={"100px"} />
           <p className='font-semibold text-xl mt-5'>please <Link to={'/login'} className='text-blue-700 font-bold'>Login</Link> to explore more... </p>
         </div>}
-      
+
       <Footer />
     </>
   )

@@ -4,7 +4,10 @@ import Footer from '../../common/components/Footer'
 import { MdOutlineVerified } from 'react-icons/md'
 import { FaRegEdit } from 'react-icons/fa'
 import { toast } from 'react-toastify'
-import { addBookAPI } from '../../services/allAPI'
+import { addBookAPI, deleteUserAddedBookAPI, getBookStatusAPI, getPurchaseHistoryAPI } from '../../services/allAPI'
+import { useParams } from 'react-router-dom'
+import EditProfile from '../components/EditProfile'
+import SERVERURL from '../../services/serverURL'
 
 
 function Profile() {
@@ -15,6 +18,13 @@ function Profile() {
   const [allUploadImages, setAllUpdateImages] = useState([])
   const [token, setToken] = useState("")
   const [username, setUsername] = useState("")
+  const [bookStatusDetailes, setBookStatusDetailes] = useState([])
+  const [deleteBookStatus, setDeleteBookStatus] = useState(false)
+  const [broughtBook, setBroughtBook] = useState([])
+  const [userDetails, setUserDetails] = useState({
+          bio: "",
+          profile: ""
+      })
   const [bookDetailes, setBookDetailes] = useState({
     title: "",
     author: "",
@@ -72,13 +82,13 @@ function Profile() {
       try {
         const result = await addBookAPI(reqBody, reqHeader)
         console.log(result);
-        if(result.status == 200){
+        if (result.status == 200) {
           toast.success("book added successfully")
         }
-        else if(result.status == 401){
+        else if (result.status == 401) {
           toast.warning(result.response.data)
         }
-        else{
+        else {
           toast.error("error in adding book")
         }
       } catch (error) {
@@ -91,14 +101,72 @@ function Profile() {
 
   // }
 
+  const handleUserBook = async () => {
+    const reqHeader = {
+      "Authorization": `Bearer ${token}`
+    }
+
+    try {
+      const result = await getBookStatusAPI(reqHeader)
+      console.log(result.data);
+      setBookStatusDetailes(result.data)
+
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+  const handleDeletBook = async (id) => {
+    try {
+      const result = await deleteUserAddedBookAPI(id)
+      console.log(result);
+
+      if (result.status == 200) {
+        setDeleteBookStatus(true)
+        toast.success("book deleted successfully")
+      } else {
+        toast.error("something went wrong")
+      }
+
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+  const handlepurchaseHistory = async () => {
+    const reqHeader = {
+      "Authorization": `Bearer ${token}`
+    }
+    try {
+      const result = await getPurchaseHistoryAPI(reqHeader)
+      console.log(result.data);
+      setBroughtBook(result.data)
+
+    } catch (error) {
+      console.log(error);
+
+    }
+
+  }
+
+  useEffect(() => {
+    if (bookStatus == true) {
+      handleUserBook()
+    }
+    handlepurchaseHistory()
+  }, [bookStatus, deleteBookStatus, historyStatus])
+
   useEffect(() => {
     if (sessionStorage.getItem("token")) {
       setToken(sessionStorage.getItem("token"))
     }
 
-    if(sessionStorage.getItem("existingUser")){
+    if (sessionStorage.getItem("existingUser")) {
       const name = JSON.parse(sessionStorage.getItem("existingUser"))
       setUsername(name.username)
+      setUserDetails({bio:name.bio, profile:name.profile})
     }
   }, [])
 
@@ -107,7 +175,7 @@ function Profile() {
       <Header />
       <div style={{ height: '200px' }} className='bg-black'></div>
       <div className='bg-white p-3' style={{ width: '230px', height: '230px', borderRadius: '50%', marginLeft: '70px', marginTop: '-130px' }}>
-        <img style={{ width: '200px', height: '200px', borderRadius: '50%' }} src="https://w7.pngwing.com/pngs/178/595/png-transparent-user-profile-computer-icons-login-user-avatars-thumbnail.png" alt="" />
+        <img style={{ width: '200px', height: '200px', borderRadius: '50%' }} src={`${SERVERURL}/imguploads/${userDetails.profile}`} alt="" />
       </div>
       <div className='md:flex justify-between px-20 mt-5'>
         <div className='flex items-center'>
@@ -115,10 +183,10 @@ function Profile() {
           <MdOutlineVerified className='text-blue-500 ms-3 text-xl' />
         </div>
         <div>
-          <button className='flex text-blue-600 px-4 py-3 font-bold border border-blue-200'> <FaRegEdit className='mt-1 me-2' />Edit</button>
+        <EditProfile />
         </div>
       </div>
-      <p className='md:px-20 px-5 ny-5 text-justify'>Book Lover</p>
+      <p className='md:px-20 px-5 ny-5 text-justify'>{userDetails.bio}</p>
 
       <div className='flex justify-center items-center my-8 font-medium text-lg'>
         <p onClick={() => { setSellBookStatus(true), setBookStatus(false), setHistoryStatus(false) }} className={sellBookStatus ? 'text-blue-500 p-4 border-b border-gray-200 cursor-pointer' : 'p-4 border-b border-gray-200 cursor-pointer'}>Sell Book</p>
@@ -205,64 +273,68 @@ function Profile() {
 
       {bookStatus &&
         <div className='p-10 my-20 shadow rounded'>
-          <div className='bg-gray-400 p-5 rounded mt-4'>
-            <div className='md:grid grid-cols-[3fr_1fr]'>
-              <div className='px-4'>
-                <h1 className='text-2xl'>Book Title</h1>
-                <h2>Author Nmae</h2>
-                <h3 className='text-blue-800'>₹ 699</h3>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse, laboriosam! Consectetur dolore est reprehenderit illum nihil error numquam! Explicabo, officia laborum debitis quia dolore quod in perspiciatis soluta officiis eos!</p>
-                <div className='flex mt-2'>
-                  <img src="https://www.psdstamps.com/wp-content/uploads/2022/04/round-pending-stamp-png.png" alt="" style={{ width: '70px', height: '70px' }} />
-                  <img src="https://juststickers.in/wp-content/uploads/2017/08/seal-of-approval.png" alt="" style={{ width: '70px', height: '70px' }} />
-                  <img src="https://cdn-icons-png.flaticon.com/512/6188/6188726.png" alt="" style={{ width: '70px', height: '70px' }} />
-                </div>
-              </div>
-              <div className='px-4 mt-4 md:mt-4'>
-                <img src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" className='w-full' style={{ height: '240px' }} />
-                <div className='flex justify-end mt-4'>
-                  <button type='button' className='p-2 rounded bg-red-800 text-white hover:border hover:border-red-800 hover:text-red-800 hover:bg-white'>Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div className='flex justify-center items-center flex-col'>
-            <img src="https://i.pinimg.com/originals/b4/13/34/b41334a036d6796c281a6e5cbb36e4b5.gif" alt="" style={{ width: '200px', height: '200px' }} />
-            <p className='text-red-700'>No Books Added Yet....</p>
-          </div>
+          {bookStatusDetailes?.length > 0 ?
+            bookStatusDetailes.map((item, index) => (
+              <div key={index} className='bg-gray-400 p-5 rounded mt-4'>
+                <div className='md:grid grid-cols-[3fr_1fr]'>
+                  <div className='px-4'>
+                    <h1 className='text-2xl'>{item.title}</h1>
+                    <h2>{item.author}</h2>
+                    <h3 className='text-blue-800'>{item.price}</h3>
+                    <p>{item.abstract}</p>
+                    <div className='flex mt-2'>
+                      {item?.status == "pending" ? <img src="https://www.psdstamps.com/wp-content/uploads/2022/04/round-pending-stamp-png.png" alt="" style={{ width: '70px', height: '70px' }} />
+                        : item?.status == "approved" ? <img src="https://juststickers.in/wp-content/uploads/2017/08/seal-of-approval.png" alt="" style={{ width: '70px', height: '70px' }} />
+                          : <img src="https://cdn-icons-png.flaticon.com/512/6188/6188726.png" alt="" style={{ width: '70px', height: '70px' }} />}
+                    </div>
+                  </div>
+                  <div className='px-4 mt-4 md:mt-4'>
+                    <img src={item.imageUrl} alt="" className='w-full' style={{ height: '240px' }} />
+                    <div className='flex justify-end mt-4'>
+                      <button onClick={() => { handleDeletBook(item?._id) }} type='button' className='p-2 rounded bg-red-800 text-white hover:border hover:border-red-800 hover:text-red-800 hover:bg-white'>Delete</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+            :
+            <div className='flex justify-center items-center flex-col'>
+              <img src="https://i.pinimg.com/originals/b4/13/34/b41334a036d6796c281a6e5cbb36e4b5.gif" alt="" style={{ width: '200px', height: '200px' }} />
+              <p className='text-red-700'>No Books Added Yet....</p>
+            </div>}
 
         </div>
       }
 
       {historyStatus &&
         <div className='p-10 my-20 shadow rounded'>
-          <div className='bg-gray-400 p-5 rounded mt-4'>
-            <div className='md:grid grid-cols-[3fr_1fr]'>
-              <div className='px-4'>
-                <h1 className='text-2xl'>Book Title</h1>
-                <h2>Author Nmae</h2>
-                <h3 className='text-blue-800'>₹ 699</h3>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse, laboriosam! Consectetur dolore est reprehenderit illum nihil error numquam! Explicabo, officia laborum debitis quia dolore quod in perspiciatis soluta officiis eos!</p>
+          {broughtBook?.length > 0 ?
+            broughtBook.map((item, index) => (
+              <div key={index} className='bg-gray-400 p-5 rounded mt-4'>
+                <div className='md:grid grid-cols-[3fr_1fr]'>
+                  <div className='px-4'>
+                    <h1 className='text-2xl'>{item?.title}</h1>
+                    <h2>{item?.author}</h2>
+                    <h3 className='text-blue-800'>₹{item?.price}</h3>
+                    <p>{item?.abstract}</p>
 
+                  </div>
+                  <div className='px-4 mt-4 md:mt-4'>
+                    <img src={item?.imageUrl} alt="" className='w-full' style={{ height: '240px' }} />
+                  </div>
+                </div>
               </div>
-              <div className='px-4 mt-4 md:mt-4'>
-                <img src="https://5.imimg.com/data5/SELLER/Default/2023/4/300693935/CF/LD/VU/150763822/ikigai-jpg-500x500.jpg" alt="" className='w-full' style={{ height: '240px' }} />
+            ))
 
-              </div>
-            </div>
-          </div>
-
-          <div className='flex justify-center items-center flex-col'>
-            <img src="https://i.pinimg.com/originals/b4/13/34/b41334a036d6796c281a6e5cbb36e4b5.gif" alt="" style={{ width: '200px', height: '200px' }} />
-            <p className='text-red-700'>No Books Added Yet....</p>
-          </div>
+            :
+            <div className='flex justify-center items-center flex-col'>
+              <img src="https://i.pinimg.com/originals/b4/13/34/b41334a036d6796c281a6e5cbb36e4b5.gif" alt="" style={{ width: '200px', height: '200px' }} />
+              <p className='text-red-700'>No Books Added Yet....</p>
+            </div>}
 
         </div>
       }
-
-
-
 
       <Footer />
     </>
