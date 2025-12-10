@@ -2,16 +2,18 @@ import React, { useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { FaCircleUser } from 'react-icons/fa6'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginAPI, registerAPI } from '../../services/allAPI'
+import { googleLoginAPI, loginAPI, registerAPI } from '../../services/allAPI'
 import { toast } from 'react-toastify'
+import { GoogleLogin } from '@react-oauth/google'
+import { jwtDecode } from 'jwt-decode'
 
 function Auth({ register }) {
 
   const [Eye, setEye] = useState(false)
   const [userDetails, setUserDetails] = useState({
-    username: " ",
-    email: " ",
-    password: " "
+    username: "",
+    email: "",
+    password: ""
   })
 
   const navigate = useNavigate()
@@ -45,32 +47,63 @@ function Auth({ register }) {
     }
   }
 
-  const handleLogin = async () =>{
-    const{email, password} = userDetails
-    if(!email || !password){
+  const handleLogin = async () => {
+    const { email, password } = userDetails
+    if (!email || !password) {
       toast.info('fill all the fields')
-    }else{
-      const result =await loginAPI(userDetails)
+    } else {
+      const result = await loginAPI(userDetails)
       console.log(result);
-      if(result.status == 200){
-        sessionStorage.setItem("existingUser",JSON.stringify(result.data.existingUser))
+      if (result.status == 200) {
+        sessionStorage.setItem("existingUser", JSON.stringify(result.data.existingUser))
         sessionStorage.setItem("token", result.data.token)
         toast.success('login successfull')
+        if (result.data.existingUser.role == 'admin') {
+          navigate('/admin-home')
+        } else {
+          navigate('/')
+        }
         setUserDetails({
           email: "",
           password: ""
         })
-        navigate('/')
-      } else if( result.status == 404){
+
+      } else if (result.status == 404) {
         toast.warning(result.response.data)
-      } else if(result.status == 401){
+      } else if (result.status == 401) {
         toast.warning(result.response.data)
-      }else{
+      } else {
         toast.error('something went wrong!!!!!')
       }
 
     }
 
+  }
+
+  const handlegoogle = async (credentialResponse) => {
+    console.log(credentialResponse.credential);
+    const googleData = jwtDecode(credentialResponse.credential)
+    console.log(googleData);
+    try {
+      const result = await googleLoginAPI({ password: "googlepassword", email: googleData.email, username: googleData.name, profile: googleData.picture })
+      console.log(result);
+      if (result.status == 200) {
+        sessionStorage.setItem("existingUser", JSON.stringify(result.data.existingUser))
+        sessionStorage.setItem("token", result.data.token)
+        toast.success('login successfull')
+        if (result.data.existingUser.role == 'admin') {
+          navigate('/admin-home')
+        } else {
+          navigate('/')
+        }
+      }else{
+        toast.error('something went wrong!!!!!')
+      }
+
+    } catch (error) {
+      console.log(error);
+
+    }
   }
 
   console.log(userDetails);
@@ -116,6 +149,19 @@ function Auth({ register }) {
               </div>
               <div>
                 {/* google auth */}
+                {!register &&
+                  <div className='mt-3'>
+                    <GoogleLogin
+                      onSuccess={credentialResponse => {
+                        console.log(credentialResponse);
+                        handlegoogle(credentialResponse)
+                      }}
+                      onError={() => {
+                        console.log('Login Failed');
+                      }}
+                    />
+
+                  </div>}
               </div>
               <div className='mt-3'>
                 {register ? <p>Are you Already a user <Link className='text-blue-400' to={'/login'} >Login</Link></p> :

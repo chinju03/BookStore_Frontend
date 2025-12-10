@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { FaRegEdit } from 'react-icons/fa'
 import SERVERURL from '../../services/serverURL'
 import { putProfileDetailesAPI } from '../../services/allAPI'
 import { toast } from 'react-toastify'
+import { userProfileUpdate } from '../../context/ContextShare'
 
 
 function EditProfile() {
@@ -18,11 +19,12 @@ function EditProfile() {
     })
     const [existingProfile, setExistingProfile] = useState("")
     const [preview, setPreview] = useState("")
-    const [resetDetails, setResetDetails] = useState({})
-    const [submit, setSubmit] = useState(false)
 
-    console.log(userDetails);
-    console.log(existingProfile);
+    const { setUpdateProfileStatus } = useContext(userProfileUpdate)
+
+
+    // console.log(userDetails);
+    // console.log(existingProfile);
 
     const handleUserImage = (e) => {
         setUserDetails({ ...userDetails, profile: e.target.files[0] })
@@ -32,14 +34,15 @@ function EditProfile() {
 
     const handleSubmit = async () => {
 
-        const { username, password, confirmPassword, bio } = userDetails
+        const { username, password, confirmPassword, bio, profile } = userDetails
 
         if (username && password && confirmPassword && bio) {
             if (password === confirmPassword) {
                 const reqHeader = {
                     "Authorization": `Bearer ${token}`
                 }
-                if (userDetails.profile) {
+
+                if (preview) {
                     const reqBody = new FormData()
                     for (let key in userDetails) {
                         reqBody.append(key, userDetails[key])
@@ -48,35 +51,39 @@ function EditProfile() {
                     try {
                         const result = await putProfileDetailesAPI(reqBody, reqHeader)
                         console.log(result);
-                        sessionStorage.setItem("existingUser",JSON.stringify(result.data))
-                        if(result.status == 200){
+                        if (result.status == 200) {
                             toast.success("Profile updated successfully")
-                            setSubmit(true)
+                            setOffcanvas(false)
+                            setUpdateProfileStatus(result)
+                            sessionStorage.setItem("existingUser", JSON.stringify(result.data))
+
                         }
 
                     } catch (error) {
                         console.log(error);
 
                     }
-                } 
+                }
                 else {
                     const reqBody = {
                         username: userDetails.username,
                         password: userDetails.password,
                         bio: userDetails.bio,
-                        role: userDetails.role
+                        role: userDetails.role,
+                        profile: existingProfile
                     }
                     try {
                         const result = await putProfileDetailesAPI(reqBody, reqHeader)
                         console.log(result);
-                        sessionStorage.setItem("existingUser",JSON.stringify(result.data))
-                        if(result.status == 200){
+                        if (result.status == 200) {
                             toast.success("Profile updated successfully")
-                            setSubmit(true)
+                            setOffcanvas(false)
+                            setUpdateProfileStatus(result)
+                            sessionStorage.setItem("existingUser", JSON.stringify(result.data))
                         }
-                        
+
                     } catch (error) {
-                        console.log(error);    
+                        console.log(error);
                     }
                 }
             }
@@ -89,8 +96,12 @@ function EditProfile() {
         }
     }
 
-    const handlereset = ()=>{
-        setUserDetails(resetDetails) 
+    const handlereset = () => {
+        const user = JSON.parse(sessionStorage.getItem("existingUser"))
+        setUserDetails({ username: user.username, password: user.password, confirmPassword: user.password, bio: user.bio, role: user.role })
+        setExistingProfile(user.profile)
+        setPreview("")
+
     }
 
     useEffect(() => {
@@ -99,9 +110,9 @@ function EditProfile() {
             const user = JSON.parse(sessionStorage.getItem("existingUser"))
             setUserDetails({ username: user.username, password: user.password, confirmPassword: user.password, bio: user.bio, role: user.role })
             setExistingProfile(user.profile)
-            setResetDetails(userDetails)   
+
         }
-    }, [submit])
+    }, [])
     return (
         <>
             <button onClick={() => setOffcanvas(true)} className='flex text-blue-600 px-4 py-3 font-bold border border-blue-200'> <FaRegEdit className='mt-1 me-2' />Edit</button>

@@ -1,8 +1,15 @@
 import React from 'react'
 import { FaLinkedin, FaPowerOff, FaRegUser } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 function AdminHeader() {
+    const navigate = useNavigate()
+    const logout = () =>{
+        sessionStorage.clear()
+        toast.success('logged out successfully')
+        navigate('/')
+    }
     return (
         <>
             <nav className='px-5 py-3 flex items-center'>
@@ -13,7 +20,7 @@ function AdminHeader() {
                 </div>
                 {/* login */}
                 <div className='ms-auto'>
-                    <button className='flex justify-between items-center border border-black rounded px-4 py-3 ms-3 hover:bg-black hover:text-white'><FaPowerOff className='me-3' />Logout</button>
+                    <button onClick={logout} className='flex justify-between items-center border border-black rounded px-4 py-3 ms-3 hover:bg-black hover:text-white'><FaPowerOff className='me-3' />Logout</button>
                 </div>
             </nav>
         </>

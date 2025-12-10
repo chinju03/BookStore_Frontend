@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Header from '../../common/components/Header'
 import Footer from '../../common/components/Footer'
 import { MdOutlineVerified } from 'react-icons/md'
@@ -8,6 +8,7 @@ import { addBookAPI, deleteUserAddedBookAPI, getBookStatusAPI, getPurchaseHistor
 import { useParams } from 'react-router-dom'
 import EditProfile from '../components/EditProfile'
 import SERVERURL from '../../services/serverURL'
+import { userProfileUpdate } from '../../context/ContextShare'
 
 
 function Profile() {
@@ -22,9 +23,9 @@ function Profile() {
   const [deleteBookStatus, setDeleteBookStatus] = useState(false)
   const [broughtBook, setBroughtBook] = useState([])
   const [userDetails, setUserDetails] = useState({
-          bio: "",
-          profile: ""
-      })
+    bio: "",
+    profile: ""
+  })
   const [bookDetailes, setBookDetailes] = useState({
     title: "",
     author: "",
@@ -39,7 +40,8 @@ function Profile() {
     category: "",
     uploadImages: []
   })
-  console.log(bookDetailes);
+  // console.log(bookDetailes);
+  const { updateProfileStatus } = useContext(userProfileUpdate)
 
   const handleFile = (e) => {
     console.log(e.target.files[0]);
@@ -152,13 +154,6 @@ function Profile() {
   }
 
   useEffect(() => {
-    if (bookStatus == true) {
-      handleUserBook()
-    }
-    handlepurchaseHistory()
-  }, [bookStatus, deleteBookStatus, historyStatus])
-
-  useEffect(() => {
     if (sessionStorage.getItem("token")) {
       setToken(sessionStorage.getItem("token"))
     }
@@ -166,16 +161,28 @@ function Profile() {
     if (sessionStorage.getItem("existingUser")) {
       const name = JSON.parse(sessionStorage.getItem("existingUser"))
       setUsername(name.username)
-      setUserDetails({bio:name.bio, profile:name.profile})
+      setUserDetails({ bio: name.bio, profile: name.profile })
+
     }
-  }, [])
+  }, [updateProfileStatus])
+
+  useEffect(() => {
+    if (bookStatus == true) {
+      handleUserBook()
+    }
+    handlepurchaseHistory()
+  }, [bookStatus, deleteBookStatus, historyStatus])
+
+
 
   return (
     <>
       <Header />
       <div style={{ height: '200px' }} className='bg-black'></div>
       <div className='bg-white p-3' style={{ width: '230px', height: '230px', borderRadius: '50%', marginLeft: '70px', marginTop: '-130px' }}>
-        <img style={{ width: '200px', height: '200px', borderRadius: '50%' }} src={`${SERVERURL}/imguploads/${userDetails.profile}`} alt="" />
+        <img style={{ width: '200px', height: '200px', borderRadius: '50%' }} src={userDetails.profile == "" ? "https://media.istockphoto.com/id/1130884625/vector/user-member-vector-icon-for-ui-user-interface-or-profile-face-avatar-app-in-circle-design.jpg?s=612x612&w=0&k=20&c=1ky-gNHiS2iyLsUPQkxAtPBWH1BZt0PKBB1WBtxQJRE="
+        : userDetails.profile.startsWith("https")? userDetails.profile 
+        :`${SERVERURL}/imguploads/${userDetails.profile}`} alt="" />
       </div>
       <div className='md:flex justify-between px-20 mt-5'>
         <div className='flex items-center'>
@@ -183,7 +190,7 @@ function Profile() {
           <MdOutlineVerified className='text-blue-500 ms-3 text-xl' />
         </div>
         <div>
-        <EditProfile />
+          <EditProfile />
         </div>
       </div>
       <p className='md:px-20 px-5 ny-5 text-justify'>{userDetails.bio}</p>

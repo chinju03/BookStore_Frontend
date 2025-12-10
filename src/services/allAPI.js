@@ -11,6 +11,10 @@ export const loginAPI = async (reqBody) => {
     return await commonAPI("POST", `${SERVERURL}/login`, reqBody, {})
 }
 
+export const googleLoginAPI = async (reqBody) => {
+    return await commonAPI("POST", `${SERVERURL}/google-login`, reqBody, {})
+}
+
 export const getHomeBookAPI = async () => {
     return await commonAPI("GET", `${SERVERURL}/home-books`)
 }
@@ -45,3 +49,23 @@ export const putProfileDetailesAPI = async(reqBody, reqHeader)=>{
     return await commonAPI("PUT",`${SERVERURL}/update-user-profile`,reqBody,reqHeader)
 } 
 
+//---------------------------------admin-----------------------------------------
+
+export const getAllBookAdminAPI = async () => {
+    return await commonAPI("GET", `${SERVERURL}/admin-allbooks`)
+}
+
+//update book status
+export const updateBookStatusAdminAPI = async (id) => {
+    return await commonAPI("PUT", `${SERVERURL}/update-book/${id}`)
+}
+
+//get all users
+export const getAllUserAdminAPI = async (reeqHeader) => {
+    return await commonAPI("GET", `${SERVERURL}/admin-allusers`,"",reeqHeader)
+}
+
+// update admin profile
+export const updateAdminProfileAPI = async(reqBody, reqHeader)=>{
+    return await commonAPI("PUT",`${SERVERURL}/update-admin-profile`,reqBody,reqHeader)
+}
