@@ -1,11 +1,13 @@
 import React from 'react'
 import { FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 import { IoMdMail } from 'react-icons/io';
+import Header from '../components/Header';
 
 
 function Contact() {
   return (
     <>
+    <Header/>
     <div className="min-h-screen bg-linear-to-b from-white to-blue-50 flex flex-col items-center py-12 px-6 font-[Poppins]">
         <h1 className="text-4xl font-semibold text-blue-900 mb-4 text-center">
           Contacts
@@ -69,17 +71,13 @@ function Contact() {
 
             <div className="flex items-center mb-5">
               <IoMdMail className="w-5 h-5 mr-4" />
-              <p>support@healify.in</p>
+              <p>support@bookstore.in</p>
             </div>
 
             <div className="flex items-center mb-5">
               <FaMapMarkerAlt className="w-5 h-5 mr-4" />
-              <p>Healify HQ, Kochi, Kerala, India</p>
+              <p>BookStore, Kochi, Kerala, India</p>
             </div>
-
-            <p className="mt-8 text-sm text-blue-100">
-              Available Mon–Sat, 9:00 AM – 7:00 PM
-            </p>
           </div>
         </div>
       </div>

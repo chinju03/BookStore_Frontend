@@ -4,8 +4,9 @@ import Footer from '../../common/components/Footer'
 import { FaBackward, FaCross, FaRegEye } from 'react-icons/fa'
 import { IoMdClose } from 'react-icons/io'
 import { Link, useParams } from 'react-router-dom'
-import { getABookAPI } from '../../services/allAPI'
+import { getABookAPI, makePaymentAPI } from '../../services/allAPI'
 import SERVERURL from '../../services/serverURL'
+import {loadStripe} from '@stripe/stripe-js';
 
 function ViewBook() {
   const [modalStatus, setModalStatus] = useState(false)
@@ -24,6 +25,31 @@ function ViewBook() {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  const handlePurchace = async() =>{
+    const stripe = await loadStripe('pk_test_51ScgVqCozcajbWPNhg85UZbbdXrKG84Rl1I12AVpj47J7g1uqeEC5d2MqTwdqNr5SvITMcQkmuFM2Q9X1qlOKRct007OLmvVgH');
+    console.log(stripe); 
+    const token = sessionStorage.getItem("token") 
+    if (token){
+      const reqHeader = {
+        "Authorization": `Bearer ${token}`
+      }
+      try {
+        const result = await makePaymentAPI (bookDetailes, reqHeader)
+        console.log(result);
+        const checkoutSessionUrl = result.data.checkoutsessionurl 
+        if (checkoutSessionUrl){
+          //redirect
+          window.location.href = checkoutSessionUrl
+        }
+          
+      } catch (error) {
+        console.log(error);
+        
+      }
+    }
+
   }
 
   useEffect(() => {
@@ -58,7 +84,7 @@ function ViewBook() {
               <p className='text-justify mt-10'>{bookDetailes?.abstract}</p>
               <div className='mt-10 flex justify-end'>
                 <Link to={'/all-books'} className='flex px-4 py-3 bg-blue-800 rounded text-white hover:bg-white hover:text-blue-800 hover:border hover:border-blue-800 me-2'><FaBackward className='mt-1 me-1' />Back</Link>
-                <button className='px-4 py-3 bg-green-800 rounded text-white hover:bg-white hover:text-blue-800 hover:border hover:border-blue-800'>Buy</button>
+                <button type='button' onClick={handlePurchace} className='px-4 py-3 bg-green-800 rounded text-white hover:bg-white hover:text-blue-800 hover:border hover:border-blue-800'>Buy</button>
               </div>
             </div>
           </div>

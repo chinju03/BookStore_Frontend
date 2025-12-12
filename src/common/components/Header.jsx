@@ -6,6 +6,7 @@ import { LuMenu } from 'react-icons/lu'
 import { Link, useNavigate } from 'react-router-dom'
 import { userProfileUpdate } from '../../context/ContextShare'
 import SERVERURL from '../../services/serverURL'
+import { userAuthContext } from '../../context/AuthContext'
 
 function Header() {
     const [listStatus, setListStatus] = useState(false)
@@ -16,11 +17,14 @@ function Header() {
     console.log(username);
 
     const { updateProfileStatus } = useContext(userProfileUpdate)
+    const {setAuthorisedUser} = useContext(userAuthContext)
+    
 
     const navigate = useNavigate()
     const logout = () => {
         sessionStorage.clear()
         toast.success('logged out successfully')
+        setAuthorisedUser(false)
         navigate('/')
     }
 

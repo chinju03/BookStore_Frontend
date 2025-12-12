@@ -1,13 +1,17 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { FaLinkedin, FaPowerOff, FaRegUser } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { userAuthContext } from '../../context/AuthContext'
 
 function AdminHeader() {
     const navigate = useNavigate()
+    const {setAuthorisedUser} = useContext(userAuthContext)
+    
     const logout = () =>{
         sessionStorage.clear()
         toast.success('logged out successfully')
+        setAuthorisedUser(false)
         navigate('/')
     }
     return (

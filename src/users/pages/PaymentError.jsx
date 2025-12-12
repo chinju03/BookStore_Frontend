@@ -14,7 +14,7 @@ function PaymentError() {
             <Link className="px-4 py-3 bg-blue-600 text-white hover:border hover:border-blue-600 hover:bg-white hover:text-blue-600" to={"/all-books"}>Explore Books...</Link>
         </div>
         <div>
-            <img src="https://funtura.in/wp-content/themes/funtura/assets/images/success.svg" className='w-3/4 ms-30' alt="" />
+            <img src="https://inai.io/hubfs/Header%20-%20Online%20payment%20failure%20reasons%20and%20how%20to%20avoid%20it_%20(1).png" className='w-3/4 ms-30' alt="" />
         </div>
     </div>
     <Footer/>

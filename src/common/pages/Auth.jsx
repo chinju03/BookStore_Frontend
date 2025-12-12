@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { FaCircleUser } from 'react-icons/fa6'
 import { Link, useNavigate } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { googleLoginAPI, loginAPI, registerAPI } from '../../services/allAPI'
 import { toast } from 'react-toastify'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
+import { userAuthContext } from '../../context/AuthContext'
 
 function Auth({ register }) {
 
@@ -15,6 +16,8 @@ function Auth({ register }) {
     email: "",
     password: ""
   })
+
+  const {setAuthorisedUser} = useContext(userAuthContext)
 
   const navigate = useNavigate()
 
@@ -57,6 +60,7 @@ function Auth({ register }) {
       if (result.status == 200) {
         sessionStorage.setItem("existingUser", JSON.stringify(result.data.existingUser))
         sessionStorage.setItem("token", result.data.token)
+        setAuthorisedUser(true)
         toast.success('login successfull')
         if (result.data.existingUser.role == 'admin') {
           navigate('/admin-home')
@@ -90,6 +94,7 @@ function Auth({ register }) {
       if (result.status == 200) {
         sessionStorage.setItem("existingUser", JSON.stringify(result.data.existingUser))
         sessionStorage.setItem("token", result.data.token)
+        setAuthorisedUser(true)
         toast.success('login successfull')
         if (result.data.existingUser.role == 'admin') {
           navigate('/admin-home')
